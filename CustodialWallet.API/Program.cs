@@ -1,8 +1,15 @@
+using CustodialWallet.API.Middleware;
+using CustodialWallet.Application.DI;
+using CustodialWallet.Application.Helper;
 using CustodialWallet.Application.Interface;
 using CustodialWallet.Application.Service;
+using CustodialWallet.Application.Validator.User;
+using CustodialWallet.Domain.Dto.Request;
+using CustodialWallet.Domain.Models.User;
 using CustodialWallet.Infostructure.DbContext;
 using CustodialWallet.Infostructure.Interface;
 using CustodialWallet.Infostructure.Repository;
+using FluentValidation;
 
 namespace CustodialWallet.API
 {
@@ -17,7 +24,7 @@ namespace CustodialWallet.API
             builder.Services.AddScoped<IInitRepository, InitRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-            builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddApplication();
 
             builder.Services.AddControllers();
             
@@ -43,6 +50,8 @@ namespace CustodialWallet.API
                 var initRepository = scope.ServiceProvider.GetRequiredService<IInitRepository>();
                 await initRepository.InitDatabaseAsync();
             }
+
+            app.UseMiddleware<ExceptionMiddleware>();
 
             app.Run();
         }

@@ -1,6 +1,6 @@
-﻿using CustodialWallet.Application.Models;
-using CustodialWallet.Domain.Dto.Request;
-using CustodialWallet.Domain.Dto.Response;
+﻿using CustodialWallet.Domain.Dto.Request;
+using CustodialWallet.Domain.Dto.Response.User;
+using CustodialWallet.Domain.Models.User;
 
 namespace CustodialWallet.Application.Interface
 {

@@ -1,7 +1,7 @@
 ﻿using CustodialWallet.Application.Interface;
-using CustodialWallet.Application.Models;
 using CustodialWallet.Domain.Dto.Request;
-using CustodialWallet.Domain.Dto.Response;
+using CustodialWallet.Domain.Dto.Response.User;
+using CustodialWallet.Domain.Models.User;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CustodialWallet.API.Controllers

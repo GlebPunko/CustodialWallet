@@ -1,6 +1,6 @@
-﻿using CustodialWallet.Application.Models;
-using CustodialWallet.Domain.Dto.Request;
+﻿using CustodialWallet.Domain.Dto.Request;
 using CustodialWallet.Domain.Dto.User;
+using CustodialWallet.Domain.Models.User;
 
 namespace CustodialWallet.Infostructure.Interface
 {
@@ -11,6 +11,9 @@ namespace CustodialWallet.Infostructure.Interface
         Task<IEnumerable<UserWithBalancesDto>> GetUserWithBalancesByIdAsync(Guid userId);
         Task DepositAsync(Guid userId, DepositRequest depositRequest);
         Task WithdrawAsync(Guid userId, WithdrawRequest withdrawRequest);
-        Task<decimal> GetBalanceByUserIdAndCurrencyIdAsync(Guid userId, Guid currencyId);
+        Task<UserBalanceInfoModel> GetBalanceByUserIdAndCurrencyIdAsync(Guid userId, Guid currencyId);
+        Task<bool> CheckIfEmailExistsAsync(string email);
+        Task<bool> CheckIfUserExistsAsync(Guid userId);
+        Task<bool> CheckIfCurrencyExistsAsync(Guid currencyId);
     }
 }

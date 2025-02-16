@@ -1,4 +1,4 @@
-﻿namespace CustodialWallet.Application.Models
+﻿namespace CustodialWallet.Domain.Models.User
 {
     public class UserModel
     {

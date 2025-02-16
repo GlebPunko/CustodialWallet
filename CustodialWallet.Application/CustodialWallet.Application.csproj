@@ -10,4 +10,13 @@
     <ProjectReference Include="..\CustodialWallet.Infostructure\CustodialWallet.Infostructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="CustomException\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="11.11.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.11.0" />
+  </ItemGroup>
+
 </Project>

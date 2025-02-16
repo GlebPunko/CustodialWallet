@@ -1,9 +1,9 @@
 ﻿using Dapper;
-using CustodialWallet.Application.Models;
 using CustodialWallet.Infostructure.DbContext;
 using CustodialWallet.Infostructure.Interface;
 using CustodialWallet.Domain.Dto.User;
 using CustodialWallet.Domain.Dto.Request;
+using CustodialWallet.Domain.Models.User;
 
 namespace CustodialWallet.Infostructure.Repository
 {
@@ -82,7 +82,9 @@ namespace CustodialWallet.Infostructure.Repository
                         var balance = await connection.QueryFirstOrDefaultAsync<decimal>(
                             @"SELECT Amount FROM Balances 
                                 WHERE UserId = @UserId AND CurrencyId = @CurrencyId;",
-                            new { UserId = userId, CurrencyId = depositRequest.CurrencyId },
+                            new { 
+                                UserId = userId, 
+                                CurrencyId = depositRequest.CurrencyId },
                             transaction
                         );
 
@@ -90,7 +92,10 @@ namespace CustodialWallet.Infostructure.Repository
                             @"UPDATE Balances 
                             SET Amount = Amount + CAST(@Amount as MONEY)
                             WHERE UserId = @UserId AND CurrencyId = @CurrencyId;",
-                            new { UserId = userId, CurrencyId = depositRequest.CurrencyId, Amount = depositRequest.Amount },
+                            new { 
+                                UserId = userId, 
+                                CurrencyId = depositRequest.CurrencyId, 
+                                Amount = depositRequest.Amount },
                             transaction
                         );
 
@@ -119,7 +124,9 @@ namespace CustodialWallet.Infostructure.Repository
                         var balance = await connection.QueryFirstOrDefaultAsync<decimal>(
                             @"SELECT Amount FROM Balances 
                             WHERE UserId = @UserId AND CurrencyId = @CurrencyId;",
-                            new { UserId = userId, CurrencyId = withdrawRequest.CurrencyId},
+                            new { 
+                                UserId = userId, 
+                                CurrencyId = withdrawRequest.CurrencyId},
                             transaction
                         );
 
@@ -151,22 +158,74 @@ namespace CustodialWallet.Infostructure.Repository
             }
         }
 
-        public async Task<decimal> GetBalanceByUserIdAndCurrencyIdAsync(Guid userId, Guid currencyId)
+        public async Task<UserBalanceInfoModel> GetBalanceByUserIdAndCurrencyIdAsync(Guid userId, Guid currencyId)
         {
             using (var connection = _dapperContext.CreateConnection())
             {
                 var sql = @"
-                SELECT Amount 
-                FROM Balances 
-                WHERE UserId = @UserId AND CurrencyId = @CurrencyId;";
+                    SELECT b.Amount, c.ShortName AS CurrencyShortName
+                    FROM Balances b
+                    JOIN Currencies c ON b.CurrencyId = c.Id
+                    WHERE b.UserId = @UserId AND b.CurrencyId = @CurrencyId;";
 
-                var amount = await connection.QueryFirstOrDefaultAsync<decimal>(sql, new
+                var balanceInfo = await connection.QueryFirstOrDefaultAsync<UserBalanceInfoModel>(sql, new
                 {
                     UserId = userId,
                     CurrencyId = currencyId
                 });
 
-                return amount;
+                return balanceInfo;
+            }
+        }
+
+        public async Task<bool> CheckIfEmailExistsAsync(string email)
+        {
+            using (var connection = _dapperContext.CreateConnection())
+            {
+                var sql = @"
+                    SELECT EXISTS (
+                    SELECT 1 
+                    FROM Users 
+                    WHERE Email = @Email
+                );";
+
+                var emailExists = await connection.QueryFirstOrDefaultAsync<bool>(sql, new { Email = email });
+
+                return emailExists;
+            }
+        }
+
+        public async Task<bool> CheckIfUserExistsAsync(Guid userId)
+        {
+            using (var connection = _dapperContext.CreateConnection())
+            {
+                var sql = @"
+                    SELECT EXISTS (
+                    SELECT 1 
+                    FROM Users 
+                    WHERE Id = @UserId
+                );";
+
+                var userlExists = await connection.QueryFirstOrDefaultAsync<bool>(sql, new { UserId = userId });
+
+                return userlExists;
+            }
+        }
+
+        public async Task<bool> CheckIfCurrencyExistsAsync(Guid currencyId)
+        {
+            using (var connection = _dapperContext.CreateConnection())
+            {
+                var sql = @"
+                    SELECT EXISTS (
+                    SELECT 1 
+                    FROM Currencies 
+                    WHERE Id = @CurrencyId
+                );";
+
+                var userlExists = await connection.QueryFirstOrDefaultAsync<bool>(sql, new { CurrencyId = currencyId });
+
+                return userlExists;
             }
         }
     }
