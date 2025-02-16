@@ -1,0 +1,6 @@
+services:
+  custodialwallet.api:
+    image: ${DOCKER_REGISTRY-}custodialwalletapi
+    build:
+      context: .
+      dockerfile: CustodialWallet/Dockerfile
