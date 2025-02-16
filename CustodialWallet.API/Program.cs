@@ -1,3 +1,9 @@
+using CustodialWallet.Application.Interface;
+using CustodialWallet.Application.Service;
+using CustodialWallet.Infostructure.DbContext;
+using CustodialWallet.Infostructure.Interface;
+using CustodialWallet.Infostructure.Repository;
+
 namespace CustodialWallet.API
 {
     public class Program
@@ -5,6 +11,12 @@ namespace CustodialWallet.API
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            builder.Services.AddSingleton<DapperContext>();
+
+            builder.Services.AddSingleton<IInitRepository, InitRepository>();
+
+            builder.Services.AddScoped<IUserService, UserService>();
 
             builder.Services.AddControllers();
             

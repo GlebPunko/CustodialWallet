@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>1bc51877-b52b-4cab-852e-085aa991ebf4</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -16,6 +15,11 @@
 
   <ItemGroup>
     <Folder Include="Controllers\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CustodialWallet.Application\CustodialWallet.Application.csproj" />
+    <ProjectReference Include="..\CustodialWallet.Infostructure\CustodialWallet.Infostructure.csproj" />
   </ItemGroup>
 
 </Project>
