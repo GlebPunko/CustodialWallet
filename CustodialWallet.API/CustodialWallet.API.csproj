@@ -14,10 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\CustodialWallet.Application\CustodialWallet.Application.csproj" />
     <ProjectReference Include="..\CustodialWallet.Infostructure\CustodialWallet.Infostructure.csproj" />
   </ItemGroup>

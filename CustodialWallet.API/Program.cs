@@ -8,13 +8,14 @@ namespace CustodialWallet.API
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddSingleton<DapperContext>();
 
-            builder.Services.AddSingleton<IInitRepository, InitRepository>();
+            builder.Services.AddScoped<IInitRepository, InitRepository>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
 
             builder.Services.AddScoped<IUserService, UserService>();
 
@@ -36,6 +37,12 @@ namespace CustodialWallet.API
             app.UseAuthorization();
 
             app.MapControllers();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var initRepository = scope.ServiceProvider.GetRequiredService<IInitRepository>();
+                await initRepository.InitDatabaseAsync();
+            }
 
             app.Run();
         }

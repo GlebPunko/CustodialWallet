@@ -3,20 +3,18 @@ services:
     image: ${DOCKER_REGISTRY-}custodialwalletapi
     build:
       context: .
-      dockerfile: CustodialWallet/Dockerfile
+      dockerfile: CustodialWallet.API/Dockerfile
 
   postgres:
     image: postgres:latest
-    container_name: postgres_container
+    container_name: postgres
     environment:
       POSTGRES_USER: postgres_user
       POSTGRES_PASSWORD: postgres_password_strong_pass
       POSTGRES_DB: CustodialWalletDb
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
-      - "5430:5432"
-    volumes:
-      - ./pgdata:/var/lib/postgresql/data/pgdata
+      - "5429:5432"
     deploy:
       resources:
         limits:
@@ -51,11 +49,5 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@gmail.com
       PGADMIN_DEFAULT_PASSWORD: admin
-    volumes:
-      - pgadmin-data:/var/lib/pgadmin
-
-volumes:
-  pgdata:
-    driver: local
-  pgadmin-data:
-    driver: local
+    depends_on: 
+      - postgres
