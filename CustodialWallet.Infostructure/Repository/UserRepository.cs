@@ -69,164 +69,155 @@ namespace CustodialWallet.Infostructure.Repository
             return result;
         }
 
-        public async Task DepositAsync(Guid userId, DepositRequest depositRequest)
+        public async Task<bool> DepositAsync(Guid userId, DepositRequest depositRequest)
         {
-            using (var connection = _dapperContext.CreateConnection())
+            using var connection = _dapperContext.CreateConnection();
+
+            connection.Open();
+
+            using var transaction = connection.BeginTransaction();
+
+            try
             {
-                connection.Open();
+                var rowsAffected = await connection.ExecuteAsync(
+                    @"UPDATE Balances 
+                    SET Amount = Amount + CAST(@Amount as MONEY)
+                    WHERE UserId = @UserId AND CurrencyId = @CurrencyId;",
+                    new
+                    {
+                        UserId = userId,
+                        CurrencyId = depositRequest.CurrencyId,
+                        Amount = depositRequest.Amount
+                    },
+                    transaction
+                );
 
-                using (var transaction = connection.BeginTransaction())
+                if(rowsAffected == 0)
                 {
-                    try
-                    {
-                        var balance = await connection.QueryFirstOrDefaultAsync<decimal>(
-                            @"SELECT Amount FROM Balances 
-                                WHERE UserId = @UserId AND CurrencyId = @CurrencyId;",
-                            new { 
-                                UserId = userId, 
-                                CurrencyId = depositRequest.CurrencyId },
-                            transaction
-                        );
+                    transaction.Rollback();
 
-                        await connection.ExecuteAsync(
-                            @"UPDATE Balances 
-                            SET Amount = Amount + CAST(@Amount as MONEY)
-                            WHERE UserId = @UserId AND CurrencyId = @CurrencyId;",
-                            new { 
-                                UserId = userId, 
-                                CurrencyId = depositRequest.CurrencyId, 
-                                Amount = depositRequest.Amount },
-                            transaction
-                        );
-
-                        transaction.Commit();
-                    }
-                    catch (Exception)
-                    {
-                        transaction.Rollback();
-
-                        throw; 
-                    }
+                    return false;
                 }
+
+                transaction.Commit();
+
+                return true;
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+
+                throw;
             }
         }
 
-        public async Task WithdrawAsync(Guid userId, WithdrawRequest withdrawRequest)
+        public async Task<bool> WithdrawAsync(Guid userId, WithdrawRequest withdrawRequest)
         {
-            using (var connection = _dapperContext.CreateConnection())
+            using var connection = _dapperContext.CreateConnection();
+
+            connection.Open();
+
+            using var transaction = connection.BeginTransaction();
+
+            try
             {
-                connection.Open();
+                var rowsAffected = await connection.ExecuteAsync(
+                    @"UPDATE Balances 
+                    SET Amount = Amount - @Amount 
+                    WHERE UserId = @UserId AND CurrencyId = @CurrencyId;",
+                    new
+                    {
+                        UserId = userId,
+                        CurrencyId = withdrawRequest.CurrencyId,
+                        Amount = withdrawRequest.Amount
+                    },
+                    transaction
+                );
 
-                using (var transaction = connection.BeginTransaction())
+                if(rowsAffected == 0)
                 {
-                    try
-                    {
-                        var balance = await connection.QueryFirstOrDefaultAsync<decimal>(
-                            @"SELECT Amount FROM Balances 
-                            WHERE UserId = @UserId AND CurrencyId = @CurrencyId;",
-                            new { 
-                                UserId = userId, 
-                                CurrencyId = withdrawRequest.CurrencyId},
-                            transaction
-                        );
+                    transaction.Rollback();
 
-                        if (balance < withdrawRequest.Amount)
-                        {
-                            throw new Exception("Недостаточно средств для снятия.");
-                        }
-
-                        await connection.ExecuteAsync(
-                            @"UPDATE Balances 
-                            SET Amount = Amount - @Amount 
-                            WHERE UserId = @UserId AND CurrencyId = @CurrencyId;",
-                            new { 
-                                UserId = userId, 
-                                CurrencyId = withdrawRequest.CurrencyId, 
-                                Amount = withdrawRequest.Amount },
-                            transaction
-                        );
-
-                        transaction.Commit();
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-
-                        throw;
-                    }
+                    return false;
                 }
+
+                transaction.Commit();
+
+                return true;
+            }
+            catch (Exception)
+            {
+                transaction.Rollback();
+
+                throw;
             }
         }
 
-        public async Task<UserBalanceInfoModel> GetBalanceByUserIdAndCurrencyIdAsync(Guid userId, Guid currencyId)
+        public async Task<UserBalanceInfoDto> GetBalanceByUserIdAndCurrencyIdAsync(Guid userId, Guid currencyId)
         {
-            using (var connection = _dapperContext.CreateConnection())
-            {
-                var sql = @"
+            using var connection = _dapperContext.CreateConnection();
+
+            var sql = @"
                     SELECT b.Amount, c.ShortName AS CurrencyShortName
                     FROM Balances b
                     JOIN Currencies c ON b.CurrencyId = c.Id
                     WHERE b.UserId = @UserId AND b.CurrencyId = @CurrencyId;";
 
-                var balanceInfo = await connection.QueryFirstOrDefaultAsync<UserBalanceInfoModel>(sql, new
-                {
-                    UserId = userId,
-                    CurrencyId = currencyId
-                });
+            var balanceInfo = await connection.QueryFirstOrDefaultAsync<UserBalanceInfoDto>(sql, new
+            {
+                UserId = userId,
+                CurrencyId = currencyId
+            });
 
-                return balanceInfo;
-            }
+            return balanceInfo;
         }
 
         public async Task<bool> CheckIfEmailExistsAsync(string email)
         {
-            using (var connection = _dapperContext.CreateConnection())
-            {
-                var sql = @"
+            using var connection = _dapperContext.CreateConnection();
+
+            var sql = @"
                     SELECT EXISTS (
                     SELECT 1 
                     FROM Users 
                     WHERE Email = @Email
                 );";
 
-                var emailExists = await connection.QueryFirstOrDefaultAsync<bool>(sql, new { Email = email });
+            var emailExists = await connection.QueryFirstOrDefaultAsync<bool>(sql, new { Email = email });
 
-                return emailExists;
-            }
+            return emailExists;
         }
 
         public async Task<bool> CheckIfUserExistsAsync(Guid userId)
         {
-            using (var connection = _dapperContext.CreateConnection())
-            {
-                var sql = @"
+            using var connection = _dapperContext.CreateConnection();
+
+            var sql = @"
                     SELECT EXISTS (
                     SELECT 1 
                     FROM Users 
                     WHERE Id = @UserId
                 );";
 
-                var userlExists = await connection.QueryFirstOrDefaultAsync<bool>(sql, new { UserId = userId });
+            var userlExists = await connection.QueryFirstOrDefaultAsync<bool>(sql, new { UserId = userId });
 
-                return userlExists;
-            }
+            return userlExists;
         }
 
         public async Task<bool> CheckIfCurrencyExistsAsync(Guid currencyId)
         {
-            using (var connection = _dapperContext.CreateConnection())
-            {
-                var sql = @"
+            using var connection = _dapperContext.CreateConnection();
+
+            var sql = @"
                     SELECT EXISTS (
                     SELECT 1 
                     FROM Currencies 
                     WHERE Id = @CurrencyId
                 );";
 
-                var userlExists = await connection.QueryFirstOrDefaultAsync<bool>(sql, new { CurrencyId = currencyId });
+            var userlExists = await connection.QueryFirstOrDefaultAsync<bool>(sql, new { CurrencyId = currencyId });
 
-                return userlExists;
-            }
+            return userlExists;
         }
     }
 }

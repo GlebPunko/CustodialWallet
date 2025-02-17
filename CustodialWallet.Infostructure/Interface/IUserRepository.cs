@@ -9,9 +9,9 @@ namespace CustodialWallet.Infostructure.Interface
         Task<Guid> CreateUserAsync(UserModel userModel);
         Task<IEnumerable<UserWithBalancesDto>> GetUserBalancesAsync(Guid userId);
         Task<IEnumerable<UserWithBalancesDto>> GetUserWithBalancesByIdAsync(Guid userId);
-        Task DepositAsync(Guid userId, DepositRequest depositRequest);
-        Task WithdrawAsync(Guid userId, WithdrawRequest withdrawRequest);
-        Task<UserBalanceInfoModel> GetBalanceByUserIdAndCurrencyIdAsync(Guid userId, Guid currencyId);
+        Task<bool> DepositAsync(Guid userId, DepositRequest depositRequest);
+        Task<bool> WithdrawAsync(Guid userId, WithdrawRequest withdrawRequest);
+        Task<UserBalanceInfoDto> GetBalanceByUserIdAndCurrencyIdAsync(Guid userId, Guid currencyId);
         Task<bool> CheckIfEmailExistsAsync(string email);
         Task<bool> CheckIfUserExistsAsync(Guid userId);
         Task<bool> CheckIfCurrencyExistsAsync(Guid currencyId);

@@ -1,4 +1,5 @@
-﻿using CustodialWallet.Application.Interface;
+﻿using CustodialWallet.Application.CustomException;
+using CustodialWallet.Application.Interface;
 using CustodialWallet.Application.Validator.User;
 using CustodialWallet.Domain.Dto.Balance;
 using CustodialWallet.Domain.Dto.Request;
@@ -41,7 +42,7 @@ namespace CustodialWallet.Application.Service
             if (!validResult.IsValid)
                 return _responseHelper.PrepareErrorResponse<UserBalanceResponse>(validResult.Errors);
 
-            var userBalances = await _userRepository.GetUserBalancesAsync(userId);
+            var userBalances = await _userRepository.GetUserBalancesAsync(userId) ?? throw new UserNotFoundException("User not found.");
 
             var response = new UserBalanceResponse
             {
@@ -66,7 +67,7 @@ namespace CustodialWallet.Application.Service
             if (!validResult.IsValid)
                 return _responseHelper.PrepareErrorResponse<UserWithBalancesResponse>(validResult.Errors);
 
-            var userWithBalances = await _userRepository.GetUserWithBalancesByIdAsync(userId) ?? throw new Exception("Пользователь не найден."); // todo custom ex
+            var userWithBalances = await _userRepository.GetUserWithBalancesByIdAsync(userId) ?? throw new UserNotFoundException("User not found.");
 
             var response = new UserWithBalancesResponse
             {
@@ -94,7 +95,10 @@ namespace CustodialWallet.Application.Service
             if (!validResult.IsValid)
                 return _responseHelper.PrepareErrorResponse<UserBalanceByCurrencyResponse>(validResult.Errors);
 
-            await _userRepository.DepositAsync(userId, depositRequest);
+            var isSuccess = await _userRepository.DepositAsync(userId, depositRequest);
+
+            if (!isSuccess)
+                throw new DepositIssueException("Deposit issue. Try again later.");
 
             var newAmount = await _userRepository.GetBalanceByUserIdAndCurrencyIdAsync(userId, depositRequest.CurrencyId);
 
@@ -108,7 +112,10 @@ namespace CustodialWallet.Application.Service
             if (!validResult.IsValid)
                 return _responseHelper.PrepareErrorResponse<UserBalanceByCurrencyResponse>(validResult.Errors);
 
-            await _userRepository.WithdrawAsync(userId, withdrawRequest);
+            var isSuccess = await _userRepository.WithdrawAsync(userId, withdrawRequest);
+
+            if (!isSuccess)
+                throw new WithdrawIssueException("Withdraw issue. Try again later.");
 
             var newAmount = await _userRepository.GetBalanceByUserIdAndCurrencyIdAsync(userId, withdrawRequest.CurrencyId);
 

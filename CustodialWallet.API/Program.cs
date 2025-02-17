@@ -1,15 +1,6 @@
 using CustodialWallet.API.Middleware;
 using CustodialWallet.Application.DI;
-using CustodialWallet.Application.Helper;
-using CustodialWallet.Application.Interface;
-using CustodialWallet.Application.Service;
-using CustodialWallet.Application.Validator.User;
-using CustodialWallet.Domain.Dto.Request;
-using CustodialWallet.Domain.Models.User;
-using CustodialWallet.Infostructure.DbContext;
 using CustodialWallet.Infostructure.Interface;
-using CustodialWallet.Infostructure.Repository;
-using FluentValidation;
 
 namespace CustodialWallet.API
 {
@@ -18,11 +9,6 @@ namespace CustodialWallet.API
         public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-
-            builder.Services.AddSingleton<DapperContext>();
-
-            builder.Services.AddScoped<IInitRepository, InitRepository>();
-            builder.Services.AddScoped<IUserRepository, UserRepository>();
 
             builder.Services.AddApplication();
 

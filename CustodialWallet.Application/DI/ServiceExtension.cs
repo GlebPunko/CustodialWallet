@@ -2,8 +2,6 @@
 using CustodialWallet.Application.Interface;
 using CustodialWallet.Application.Service;
 using CustodialWallet.Application.Validator.User;
-using CustodialWallet.Domain.Dto.Request;
-using CustodialWallet.Domain.Models.User;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 

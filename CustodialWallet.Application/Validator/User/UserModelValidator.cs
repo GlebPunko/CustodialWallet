@@ -10,7 +10,7 @@ namespace CustodialWallet.Application.Validator.User
         public UserModelValidator(IUserRepository userRepository)
         {
             RuleFor(userModel => userModel).NotNull().NotEmpty()
-                .WithMessage("User body can`t be emptry.");
+                .WithMessage("User body can`t be empty.");
 
             RuleFor(userModel => userModel.Email).NotNull().NotEmpty().Must(email =>
             {
@@ -21,7 +21,7 @@ namespace CustodialWallet.Application.Validator.User
                 .WithMessage("Email is invalid!");
 
             RuleFor(userModel => userModel.Email).Must(email => userRepository.CheckIfEmailExistsAsync(email).Result)
-                .WithMessage("User doen`t exist.");
+                .WithMessage("User with this email exists exist.");
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using CustodialWallet.Domain.Dto.Response;
+﻿using CustodialWallet.Application.CustomException;
+using CustodialWallet.Domain.Dto.Response;
 using System.Net;
 using System.Text.Json;
 
@@ -32,25 +33,31 @@ namespace CustodialWallet.API.Middleware
 
             var errorResponse = new ErrorResponse();
 
-            switch (exception) // todo will prepare custom exceptions
+            switch (exception)
             {
-                case ArgumentNullException ex:
+                case UserNotFoundException ex:
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                    errorResponse.Error = "Custom ex";
+                    errorResponse.Error = ex.Message;
                     break;
 
-                case KeyNotFoundException ex:
+                case DepositIssueException ex:
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-                    errorResponse.Error = "Custom ex";
+                    errorResponse.Error = ex.Message;
+                    break;
+
+                case WithdrawIssueException ex:
+                    context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                    errorResponse.Error = ex.Message;
                     break;
 
                 default:
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                    errorResponse.Error = "Custom ex";
+                    errorResponse.Error = "Something wrong. Try again later.";
                     break;
             }
 
             var jsonResponse = JsonSerializer.Serialize(errorResponse);
+
             await context.Response.WriteAsync(jsonResponse);
         }
     }
