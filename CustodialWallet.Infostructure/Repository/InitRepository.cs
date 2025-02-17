@@ -10,20 +10,20 @@ namespace CustodialWallet.Infostructure.Repository
 
         public async Task InitDatabaseAsync()
         {
-            using (var connection = _dapperContext.CreateConnection())
-            {
-                var sqlUsers = @"CREATE TABLE IF NOT EXISTS Users (
+            using var connection = _dapperContext.CreateConnection();
+
+            var sqlUsers = @"CREATE TABLE IF NOT EXISTS Users (
                     Id UUID PRIMARY KEY,
                     Email VARCHAR(255) NOT NULL UNIQUE
                     );";
 
-                var sqlCurrencies = @"CREATE TABLE IF NOT EXISTS Currencies (
+            var sqlCurrencies = @"CREATE TABLE IF NOT EXISTS Currencies (
                     Id UUID PRIMARY KEY,
                     ShortName VARCHAR(10) NOT NULL UNIQUE,
                     FullName VARCHAR(255) NOT NULL
                     );";
 
-                var sqlBalances = @"CREATE TABLE IF NOT EXISTS Balances (
+            var sqlBalances = @"CREATE TABLE IF NOT EXISTS Balances (
                     Id UUID PRIMARY KEY,
                     Amount MONEY NOT NULL,
                     CurrencyId UUID NOT NULL,
@@ -38,73 +38,85 @@ namespace CustodialWallet.Infostructure.Repository
                         UNIQUE (UserId, CurrencyId)
                     );";
 
-                //var triggerUserCreateGuid = @"CREATE OR REPLACE FUNCTION generate_user_id()
-                //    RETURNS TRIGGER AS $$
-                //    BEGIN
-                //        NEW.Id := gen_random_uuid();
-                //        RETURN NEW;
-                //    END;
-                //    $$ LANGUAGE plpgsql;
+             var triggerUserCreateGuid = @"
+                    CREATE OR REPLACE FUNCTION generate_user_id()
+                    RETURNS TRIGGER AS $$
+                    BEGIN
+                        NEW.Id := gen_random_uuid();
+                        RETURN NEW;
+                    END;
+                    $$ LANGUAGE plpgsql;
 
-                //    CREATE TRIGGER trg_generate_user_id
-                //    BEFORE INSERT ON Users
-                //    FOR EACH ROW
-                //    EXECUTE FUNCTION generate_user_id();";
+                    DROP TRIGGER IF EXISTS trg_generate_user_id ON Users;
 
-                //var triggerUserCreateBalances = @"CREATE OR REPLACE FUNCTION create_default_balances()
-                //    RETURNS TRIGGER AS $$
-                //    BEGIN
-                //        INSERT INTO Balances (Id, Amount, CurrencyId, UserId)
-                //        SELECT
-                //            gen_random_uuid(),
-                //            0.00,
-                //            Currencies.Id,
-                //            NEW.Id
-                //        FROM Currencies;
+                    CREATE TRIGGER trg_generate_user_id
+                    BEFORE INSERT ON Users
+                    FOR EACH ROW
+                    EXECUTE FUNCTION generate_user_id();";
 
-                //        RETURN NEW;
-                //    END;
-                //    $$ LANGUAGE plpgsql;
+            var triggerUserCreateBalances = @"
+                    CREATE OR REPLACE FUNCTION create_default_balances()
+                    RETURNS TRIGGER AS $$
+                    BEGIN
+                        INSERT INTO Balances (Id, Amount, CurrencyId, UserId)
+                        SELECT
+                            gen_random_uuid(),
+                            0.00,
+                            Currencies.Id,
+                            NEW.Id
+                        FROM Currencies;
 
-                //    CREATE TRIGGER trg_create_default_balances
-                //    AFTER INSERT ON Users
-                //    FOR EACH ROW
-                //    EXECUTE FUNCTION create_default_balances();";
+                        RETURN NEW;
+                    END;
+                    $$ LANGUAGE plpgsql;
 
-                //var testData = @"INSERT INTO Currencies (Id, ShortName, FullName)
-                //    VALUES 
-                //        (gen_random_uuid(), 'BTC', 'Bitcoin'),
-                //        (gen_random_uuid(), 'SOL', 'Solana'),
-                //        (gen_random_uuid(), 'USDT', 'United States Dollar Tether');
+                    DROP TRIGGER IF EXISTS trg_create_default_balances ON Users;
 
-                //    INSERT INTO Users (Email)
-                //    VALUES ('testuser@example.com');
+                    CREATE TRIGGER trg_create_default_balances
+                    AFTER INSERT ON Users
+                    FOR EACH ROW
+                    EXECUTE FUNCTION create_default_balances();";
 
-                //    WITH user_id AS (
-                //        SELECT Id FROM Users WHERE Email = 'testuser@example.com'
-                //    ),
-                //    currency_ids AS (
-                //        SELECT Id, ShortName FROM Currencies
-                //    )
-                //    INSERT INTO Balances (Id, Amount, CurrencyId, UserId)
-                //    SELECT
-                //        gen_random_uuid(), 
-                //        CASE 
-                //            WHEN ShortName = 'BTC' THEN 1000.00 
-                //            WHEN ShortName = 'SOL' THEN 500.00  
-                //            WHEN ShortName = 'USDT' THEN 10000.00 
-                //        END,
-                //        currency_ids.Id, 
-                //        user_id.Id 
-                //    FROM user_id, currency_ids;";
+            var testData = @"
+                    INSERT INTO Currencies (Id, ShortName, FullName)
+                    SELECT gen_random_uuid(), 'BTC', 'Bitcoin'
+                    WHERE NOT EXISTS (SELECT 1 FROM Currencies WHERE ShortName = 'BTC');
 
-                await connection.ExecuteAsync(sqlUsers);
-                await connection.ExecuteAsync(sqlCurrencies);
-                await connection.ExecuteAsync(sqlBalances);
-                //await connection.ExecuteAsync(triggerUserCreateGuid); //recreate if exists
-                //await connection.ExecuteAsync(triggerUserCreateBalances);
-                //await connection.ExecuteAsync(testData);
-            }
+                    INSERT INTO Currencies (Id, ShortName, FullName)
+                    SELECT gen_random_uuid(), 'SOL', 'Solana'
+                    WHERE NOT EXISTS (SELECT 1 FROM Currencies WHERE ShortName = 'SOL');
+
+                    INSERT INTO Currencies (Id, ShortName, FullName)
+                    SELECT gen_random_uuid(), 'USDT', 'United States Dollar Tether'
+                    WHERE NOT EXISTS (SELECT 1 FROM Currencies WHERE ShortName = 'USDT');
+
+                    INSERT INTO Users (Id, Email)
+                    SELECT gen_random_uuid(), 'testuser@example.com'
+                    WHERE NOT EXISTS (SELECT 1 FROM Users WHERE Email = 'testuser@example.com');
+
+                    INSERT INTO Balances (Id, Amount, CurrencyId, UserId)
+                    SELECT 
+                        gen_random_uuid(), 
+                        CASE 
+                            WHEN c.ShortName = 'BTC' THEN 1000.00 
+                            WHEN c.ShortName = 'SOL' THEN 500.00  
+                            WHEN c.ShortName = 'USDT' THEN 10000.00 
+                        END,
+                        c.Id, 
+                        u.Id
+                    FROM Users u
+                    CROSS JOIN Currencies c
+                    WHERE u.Email = 'testuser@example.com'
+                    AND NOT EXISTS (
+                        SELECT 1 FROM Balances b WHERE b.UserId = u.Id AND b.CurrencyId = c.Id
+                    );";
+
+            await connection.ExecuteAsync(sqlUsers);
+            await connection.ExecuteAsync(sqlCurrencies);
+            await connection.ExecuteAsync(sqlBalances);
+            await connection.ExecuteAsync(triggerUserCreateGuid);
+            await connection.ExecuteAsync(triggerUserCreateBalances);
+            await connection.ExecuteAsync(testData);
         }
     }
 }

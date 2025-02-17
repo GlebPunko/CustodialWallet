@@ -1,5 +1,6 @@
 using CustodialWallet.API.Middleware;
 using CustodialWallet.Application.DI;
+using CustodialWallet.Infostructure.DI;
 using CustodialWallet.Infostructure.Interface;
 
 namespace CustodialWallet.API
@@ -11,6 +12,7 @@ namespace CustodialWallet.API
             var builder = WebApplication.CreateBuilder(args);
 
             builder.Services.AddApplication();
+            builder.Services.AddData(builder.Configuration);
 
             builder.Services.AddControllers();
             

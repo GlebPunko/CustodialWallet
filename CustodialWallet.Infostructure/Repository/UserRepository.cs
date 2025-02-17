@@ -123,7 +123,7 @@ namespace CustodialWallet.Infostructure.Repository
             {
                 var rowsAffected = await connection.ExecuteAsync(
                     @"UPDATE Balances 
-                    SET Amount = Amount - @Amount 
+                    SET Amount = Amount - CAST(@Amount as MONEY)
                     WHERE UserId = @UserId AND CurrencyId = @CurrencyId;",
                     new
                     {

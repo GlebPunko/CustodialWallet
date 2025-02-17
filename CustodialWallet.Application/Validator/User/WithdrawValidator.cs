@@ -17,7 +17,7 @@ namespace CustodialWallet.Application.Validator.User
             RuleFor(request => request.Item2.Amount).NotNull().NotEmpty().Must(amount => amount > 0)
                 .WithMessage("Amount must be more than zero.");
 
-            RuleFor(request => request).Must(request => userRepository.GetBalanceByUserIdAndCurrencyIdAsync(request.Item1, request.Item2.CurrencyId).Result.Amount > 0)
+            RuleFor(request => request).Must(request => userRepository.GetBalanceByUserIdAndCurrencyIdAsync(request.Item1, request.Item2.CurrencyId).Result.Amount >= request.Item2.Amount)
                 .WithMessage("Balance is less that amount that you want withdrow.");
 
             RuleFor(userModel => userModel.Item1).Must(userId => userRepository.CheckIfUserExistsAsync(userId).Result)

@@ -20,7 +20,7 @@ namespace CustodialWallet.Application.Validator.User
             })
                 .WithMessage("Email is invalid!");
 
-            RuleFor(userModel => userModel.Email).Must(email => userRepository.CheckIfEmailExistsAsync(email).Result)
+            RuleFor(userModel => userModel.Email).Must(email => !userRepository.CheckIfEmailExistsAsync(email).Result)
                 .WithMessage("User with this email exists exist.");
         }
     }
