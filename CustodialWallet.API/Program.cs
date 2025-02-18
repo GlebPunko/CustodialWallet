@@ -20,6 +20,16 @@ namespace CustodialWallet.API
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSwagger", policy =>
+                {
+                    policy.WithOrigins("http://localhost:8080", "https://localhost:8081") 
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
+
             var app = builder.Build();
 
             if (app.Environment.IsDevelopment())
@@ -33,6 +43,8 @@ namespace CustodialWallet.API
             app.UseAuthorization();
 
             app.MapControllers();
+
+            app.UseCors("AllowSwagger");
 
             using (var scope = app.Services.CreateScope())
             {
