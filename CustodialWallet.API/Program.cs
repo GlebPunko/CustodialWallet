@@ -2,6 +2,7 @@ using CustodialWallet.API.Middleware;
 using CustodialWallet.Application.DI;
 using CustodialWallet.Infostructure.DI;
 using CustodialWallet.Infostructure.Interface;
+using CustodialWallet.Infostructure.Repository;
 
 namespace CustodialWallet.API
 {

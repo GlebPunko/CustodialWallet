@@ -38,8 +38,15 @@ namespace CustodialWallet.Infostructure.Repository
                         UNIQUE (UserId, CurrencyId)
                     );";
 
-             var triggerUserCreateGuid = @"
-                    CREATE OR REPLACE FUNCTION generate_user_id()
+            var sqlLogs = @"CREATE TABLE IF NOT EXISTS ErrorLogs (
+                    Id UUID PRIMARY KEY,
+                    Message TEXT NOT NULL,
+                    Source TEXT,
+                    StackTrace TEXT,
+                    CreatedAt TIMESTAMP WITH TIME ZONE NOT NULL
+                    );";
+
+             var triggerUserCreateGuid = @"CREATE OR REPLACE FUNCTION generate_user_id()
                     RETURNS TRIGGER AS $$
                     BEGIN
                         NEW.Id := gen_random_uuid();
@@ -54,8 +61,7 @@ namespace CustodialWallet.Infostructure.Repository
                     FOR EACH ROW
                     EXECUTE FUNCTION generate_user_id();";
 
-            var triggerUserCreateBalances = @"
-                    CREATE OR REPLACE FUNCTION create_default_balances()
+            var triggerUserCreateBalances = @"CREATE OR REPLACE FUNCTION create_default_balances()
                     RETURNS TRIGGER AS $$
                     BEGIN
                         INSERT INTO Balances (Id, Amount, CurrencyId, UserId)
@@ -76,6 +82,24 @@ namespace CustodialWallet.Infostructure.Repository
                     AFTER INSERT ON Users
                     FOR EACH ROW
                     EXECUTE FUNCTION create_default_balances();";
+
+            var triggerLogCreate = @"CREATE OR REPLACE FUNCTION generate_error_log_id_and_timestamp()
+                    RETURNS TRIGGER AS $$
+                    BEGIN
+                        NEW.Id := gen_random_uuid();
+    
+                        NEW.CreatedAt := NOW();
+    
+                        RETURN NEW;
+                    END;
+                    $$ LANGUAGE plpgsql;
+
+                    DROP TRIGGER IF EXISTS trg_generate_error_log_id_and_timestamp ON ErrorLogs;
+
+                    CREATE TRIGGER trg_generate_error_log_id_and_timestamp
+                    BEFORE INSERT ON ErrorLogs
+                    FOR EACH ROW
+                    EXECUTE FUNCTION generate_error_log_id_and_timestamp();";
 
             var testData = @"
                     INSERT INTO Currencies (Id, ShortName, FullName)
@@ -114,8 +138,10 @@ namespace CustodialWallet.Infostructure.Repository
             await connection.ExecuteAsync(sqlUsers);
             await connection.ExecuteAsync(sqlCurrencies);
             await connection.ExecuteAsync(sqlBalances);
+            await connection.ExecuteAsync(sqlLogs);
             await connection.ExecuteAsync(triggerUserCreateGuid);
             await connection.ExecuteAsync(triggerUserCreateBalances);
+            await connection.ExecuteAsync(triggerLogCreate);
             await connection.ExecuteAsync(testData);
         }
     }

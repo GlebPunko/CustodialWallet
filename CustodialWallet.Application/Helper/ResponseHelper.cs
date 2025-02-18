@@ -8,6 +8,7 @@ namespace CustodialWallet.Application.Helper
     {
         public T PrepareErrorResponse<T>(List<ValidationFailure> errors) where T : ResponseBase, new() => new()
         {
+            Success = false,
             Messages = errors.Select(e => e.ErrorMessage).ToList(),
         };
     }

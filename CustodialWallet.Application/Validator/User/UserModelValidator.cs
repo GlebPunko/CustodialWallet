@@ -12,16 +12,20 @@ namespace CustodialWallet.Application.Validator.User
             RuleFor(userModel => userModel).NotNull().NotEmpty()
                 .WithMessage("User body can`t be empty.");
 
-            RuleFor(userModel => userModel.Email).NotNull().NotEmpty().Must(email =>
+            RuleFor(userModel => userModel.Email).NotNull().NotEmpty()
+                .WithMessage("Email can`t be empty.");
+
+            RuleFor(userModel => userModel.Email).Must(email =>
             {
                 var regex = new Regex("^((?!\\.)[\\w\\-_.]*[^.])(@\\w+)(\\.\\w+(\\.\\w+)?[^.\\W])$");
 
                 return regex.IsMatch(email);
             })
+                .When(userModel => !string.IsNullOrEmpty(userModel.Email))
                 .WithMessage("Email is invalid!");
 
             RuleFor(userModel => userModel.Email).Must(email => !userRepository.CheckIfEmailExistsAsync(email).Result)
-                .WithMessage("User with this email exists exist.");
+                .WithMessage("User with this email exists.");
         }
     }
 }

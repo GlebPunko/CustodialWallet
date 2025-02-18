@@ -12,6 +12,7 @@ namespace CustodialWallet.Infostructure.DI
         {
             services.AddSingleton<DapperContext>();
 
+            services.AddSingleton<ILogRepository, LogRepository>();
             services.AddScoped<IInitRepository, InitRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
 

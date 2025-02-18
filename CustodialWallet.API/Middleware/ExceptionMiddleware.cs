@@ -1,18 +1,15 @@
 ﻿using CustodialWallet.Application.CustomException;
 using CustodialWallet.Domain.Dto.Response;
+using CustodialWallet.Infostructure.Interface;
 using System.Net;
 using System.Text.Json;
 
 namespace CustodialWallet.API.Middleware
 {
-    public class ExceptionMiddleware
+    public class ExceptionMiddleware(RequestDelegate next, ILogRepository logRepository)
     {
-        private readonly RequestDelegate _next;
-
-        public ExceptionMiddleware(RequestDelegate next)
-        {
-            _next = next;
-        }
+        private readonly RequestDelegate _next = next;
+        private readonly ILogRepository _logRepository = logRepository;
 
         public async Task InvokeAsync(HttpContext context)
         {
@@ -26,7 +23,7 @@ namespace CustodialWallet.API.Middleware
             }
         }
 
-        private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             context.Response.ContentType = "application/json";
@@ -53,6 +50,9 @@ namespace CustodialWallet.API.Middleware
                 default:
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     errorResponse.Error = "Something wrong. Try again later.";
+
+                    await _logRepository.LogErrorAsync(exception.Message, exception.Source, exception.StackTrace);
+
                     break;
             }
 
