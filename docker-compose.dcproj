@@ -4,7 +4,7 @@
     <ProjectVersion>2.1</ProjectVersion>
     <DockerTargetOS>Linux</DockerTargetOS>
     <DockerPublishLocally>False</DockerPublishLocally>
-    <ProjectGuid>920f1c06-0876-4489-b4ad-12a519400890</ProjectGuid>
+    <ProjectGuid>b8996313-7b46-41b8-8c9b-6456f9015bed</ProjectGuid>
     <DockerLaunchAction>LaunchBrowser</DockerLaunchAction>
     <DockerServiceUrl>{Scheme}://localhost:{ServicePort}/swagger</DockerServiceUrl>
     <DockerServiceName>custodialwallet.api</DockerServiceName>

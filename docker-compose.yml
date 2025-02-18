@@ -3,4 +3,22 @@ services:
     image: ${DOCKER_REGISTRY-}custodialwalletapi
     build:
       context: .
-      dockerfile: CustodialWallet/Dockerfile
+      dockerfile: CustodialWallet.API/Dockerfile
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres_user
+      POSTGRES_PASSWORD: postgres_password_strong_pass
+      POSTGRES_DB: CustodialWalletDb
+      PGDATA: /var/lib/postgresql/data/pgdb_data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    depends_on: 
+      - postgres
+
+volumes:
+  postgres_data:

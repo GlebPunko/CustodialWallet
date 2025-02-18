@@ -12,19 +12,22 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["CustodialWallet/CustodialWallet.csproj", "CustodialWallet/"]
-RUN dotnet restore "./CustodialWallet/CustodialWallet.csproj"
+COPY ["CustodialWallet.API/CustodialWallet.API.csproj", "CustodialWallet.API/"]
+COPY ["CustodialWallet.Application/CustodialWallet.Application.csproj", "CustodialWallet.Application/"]
+COPY ["CustodialWallet.Domain/CustodialWallet.Domain.csproj", "CustodialWallet.Domain/"]
+COPY ["CustodialWallet.Infostructure/CustodialWallet.Infostructure.csproj", "CustodialWallet.Infostructure/"]
+RUN dotnet restore "./CustodialWallet.API/CustodialWallet.API.csproj"
 COPY . .
-WORKDIR "/src/CustodialWallet"
-RUN dotnet build "./CustodialWallet.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/CustodialWallet.API"
+RUN dotnet build "./CustodialWallet.API.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # Этот этап используется для публикации проекта службы, который будет скопирован на последний этап
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./CustodialWallet.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./CustodialWallet.API.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # Этот этап используется в рабочей среде или при запуске из VS в обычном режиме (по умолчанию, когда конфигурация отладки не используется)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "CustodialWallet.dll"]
+ENTRYPOINT ["dotnet", "CustodialWallet.API.dll"]
