@@ -15,6 +15,6 @@
 3. Build and run containers:
 - `docker-compose build`
 - `docker-compose up -d`
-#### If you got exception that you can`t install postgres or pgAdmin, use VPN.
+#### If you got exception that you can`t install postgres or pgAdmin images, use VPN for installing and building docker-compose.
 4. Open Swagger UI:
 Go to https://localhost:8081/swagger in your browser.
